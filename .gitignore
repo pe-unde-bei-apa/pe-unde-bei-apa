@@ -1,4 +1,3 @@
 .ruff_cache
-*.sql
 .venv
 __pycache__

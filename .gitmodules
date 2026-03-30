@@ -1,0 +1,3 @@
+[submodule "models/embeddinggemma-300m"]
+	path = models/embeddinggemma-300m
+	url = https://huggingface.co/google/embeddinggemma-300m

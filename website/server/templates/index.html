@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>All Sentences</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .search-box {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        .search-box input[type="text"] {
+            padding: 8px;
+            width: 300px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+        .search-box button {
+            padding: 8px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .search-box button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="search-box">
+        <form method="GET" action="/">
+            <input type="text" name="q" placeholder="Search sentences..." value="{{ query }}">
+            <button type="submit">Search</button>
+        </form>
+        <a href="/vectorsearch">Vector Search</a> | <a href="/chat">Chat</a>
+    </div>
+    <h1>All Sentences</h1>
+    {% if sentences %}
+    <ul>
+            {% for sentence in sentences[:300] %}
+        <a style="border: 1px dashed gray;" href="/sentence/{{sentence.id}}">
+
+                <h1 style="display: inline;">
+                    {{sentence.id}}
+                </h1>
+                <a style="display: inline;" href="/vectorsearch?q={{sentence.text|urlencode}}&model=gemma">Similar</a>
+                <h3>
+                    {{sentence.text}}
+                </h3>
+
+        </a>
+
+                 <audio controls>
+                    <source src="/audio/{{sentence.id}}" type="audio/mpeg">
+                </audio>
+                
+                {% if sentence.high %}
+                    {{sentence.high |  safe}}
+                {% endif %}
+                <div style="border: 1px solid grey;">
+                    {{sentence.viz_svg_ent |safe}}
+                </div>
+                <div style="display:flex;flex-direction:row;">
+
+
+                </div>
+
+            </li>
+
+            {% endfor %}
+
+    </ul>
+        
+    {% else %}
+    <p>No sentences found.</p>
+    {% endif %}
+</body>
+</html>

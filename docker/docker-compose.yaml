@@ -1,0 +1,46 @@
+services:
+
+  mysql:
+    container_name: mysql
+    image: docker.io/mariadb:12.2.2-noble
+    restart: always
+    environment:
+      MARIADB_ROOT_PASSWORD: pula
+    volumes:
+      - ./db_data/mariadb:/var/lib/mysql
+      - ./db_dumps:/db_dumps
+    ports:
+      - 3306:3306
+
+  adminer:
+    container_name: adminer
+    image: docker.io/adminer:5.4.2
+    restart: always
+    environment:
+    - ADMINER_PLUGINS=tables-filter tinymce table-indexes-structure table-structure version-noverify config sql-gemini
+    - ADMINER_DEFAULT_SERVER=mysql
+    ports:
+      - 1488:8080
+
+
+  manticore:
+    container_name: manticore
+    image: docker.io/manticoresearch/manticore:17.5.1
+    restart: always
+    environment:
+    - TELEMETRY=0
+    ports:
+      - 19306:19306
+      - 19308:19308
+    ulimits:
+      nproc: 65535
+      nofile:
+         soft: 65535
+         hard: 65535
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - ./db_data/manticore:/var/lib/manticore:Z
+      - ./manticore.conf:/etc/manticoresearch/manticore.conf:Z
+    command: ["searchd", "-c", "/etc/manticoresearch/manticore.conf", "--nodetach"]

@@ -102,6 +102,12 @@ def make_params(text):
     }
 
 
+prev_errors = [
+    "data/03_corrected_json/0041.json",
+    "data/03_corrected_json/0029.json",
+]
+
+
 for text_path in glob.glob("data/02_segments/*.txt"):
     with open(text_path) as f:
         text_data = f.read()
@@ -109,6 +115,8 @@ for text_path in glob.glob("data/02_segments/*.txt"):
     text_file = os.path.basename(text_path)
     os.makedirs("data/03_corrected_json", exist_ok=True)
     json_out = "data/03_corrected_json/" + os.path.splitext(text_file)[0] + ".json"
+    if not json_out in prev_errors:
+        continue
     with open(json_out, 'wb') as f:
         request_headers = make_headers()
         request_params = make_params(text_data)

@@ -1,0 +1,3 @@
+- insert text to database
+- vector search
+-https://developers.google.com/knowledge-graph/reference/rest/v1/usage-limits

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sentence Details</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .word-section {
+            margin-top: 30px;
+        }
+        .synsets, .definitions {
+            margin-left: 20px;
+        }
+        .synset-item, .definition-item {
+            margin-bottom: 10px;
+            padding: 5px;
+            background-color: #f5f5f5;
+        }
+    </style>
+</head>
+<body>
+    <a href="/">&larr; Back to list</a>
+    <br>
+    {% if sentences %}
+    {% for sentence in sentences %}
+    <h1 style="display: inline;">Sentence #{{ sentence.id }}</h1>
+    <a style="margin-left: 10px;" href="/vectorsearch?q={{ sentence.text|urlencode }}&model=gemma">Similar</a>
+    <br>
+    <audio controls>
+        <source src="/audio/{{ sentence.id }}" type="audio/mpeg">
+    </audio>
+    <h3>{{ sentence.text }}</h3>
+    <div style="border: 1px solid grey;">
+        {{ sentence.viz_svg_ent | safe }}
+    </div>
+    <div style="display:flex;flex-direction:row;">
+        <div style="max-width: 49%; overflow:auto; height: 430px; zoom: 70%; border: 1px solid green;">
+            {{ sentence.viz_svg_dep | safe }}
+        </div>
+        <pre style="max-width: 49%; height: 300px; overflow: auto; border: 1px solid blue;">
+            {{sentence.doc}}
+        </pre>
+    </div>
+
+    <div class="word-section">
+        <h2>Word Data</h2>
+        {% if words_data %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Word</th>
+                    <th>Lemma</th>
+                    <th>WordNet Synsets</th>
+                    <th>DEXonline Definitions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for word in words_data %}
+                <tr>
+                    <td>{{ word.word }}</td>
+                    <td>{{ word.lemma }}</td>
+                    <td>
+                        {% if word.wordnet_synsets %}
+                        <div class="synsets">
+                            {% for synset in word.wordnet_synsets %}
+                            <div class="synset-item">
+                                <strong>{{ synset.pos }}:</strong> {{ synset.definition }}
+                                <br><em>Synonyms:</em> {{ synset.literals | join(', ') }}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        No synsets found
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% for wdef in word.dexonline_definitions %}
+                        <pre>
+                            {{wdef.internalRep}}
+                        </pre>
+                        {% endfor %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No word data available.</p>
+        {% endif %}
+    </div>
+    {% endfor %}
+    {% else %}
+    <p>No sentence found.</p>
+    {% endif %}
+</body>
+</html>

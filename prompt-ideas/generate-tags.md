@@ -1,0 +1,1 @@
+Scrie o listă scurtă de tag-uri care pot fi atribuite unei înjuraturi sau glume pentru a categorisi-o, spre exemplu rasism sau incest sau homofobie. Scrie toate tagurile pe un singur rând separate prin virgulă. În limba română, fără hashtag, cu literă mică și spațiu. În total să fie 50 termeni distincți care să acopere toată plaja înjurăturilor și glumelor și insultelor. 
