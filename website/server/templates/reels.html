@@ -145,7 +145,7 @@
 
     <div class="reels-container" id="reelsContainer" style="display: none;">
         {% for sentence in sentences %}
-        <div class="reel">
+        <div class="reel" data-audio-src="/audio/{{ sentence.id }}">
             <!-- Generate image using Lorem Picsum based on sentence text for reliable, unique loading -->
             <img src="https://picsum.photos/seed/{{ sentence.text | urlencode }}/1080/1920" alt="Generated context" class="reel-bg" loading="lazy">
             <div class="reel-overlay"></div>
@@ -160,10 +160,6 @@
                    ℹ️ 
                 </a>
             </div>
-
-            <audio class="reel-audio" loop>
-                <source src="/audio/{{ sentence.id }}" type="audio/mpeg">
-            </audio>
         </div>
         {% endfor %}
     </div>
@@ -172,14 +168,32 @@
         document.addEventListener('DOMContentLoaded', () => {
             const playPrompt = document.getElementById('playPrompt');
             const reelsContainer = document.getElementById('reelsContainer');
-            const audios = document.querySelectorAll('.reel-audio');
+            const reels = document.querySelectorAll('.reel');
             let isStarted = false;
+
+            // Global audio player for mobile (iOS explicit unlock)
+            const audioPlayer = new Audio();
+            audioPlayer.playsInline = true;
+            
+            // Autonext implementation
+            let currentReelIndex = 0;
+            audioPlayer.addEventListener('ended', () => {
+                // If there's a next reel, scroll to it smoothly
+                if (currentReelIndex < reels.length - 1) {
+                    reels[currentReelIndex + 1].scrollIntoView({ behavior: 'smooth' });
+                }
+            });
 
             // Start interaction to allow autoplay
             playPrompt.addEventListener('click', () => {
+                if (isStarted) return;
                 isStarted = true;
                 playPrompt.style.display = 'none';
                 reelsContainer.style.display = 'block';
+                
+                // Initialize audio to bypass iOS restrictions
+                audioPlayer.play().catch(e => {}); // Ignore error on empty src
+                audioPlayer.pause();
                 
                 // Initialize observer only after user interaction
                 initObserver();
@@ -194,51 +208,43 @@
 
                 const observer = new IntersectionObserver((entries) => {
                     entries.forEach(entry => {
-                        const audio = entry.target.querySelector('audio');
-                        
                         if (entry.isIntersecting) {
-                            // Pause all other audios first
-                            audios.forEach(a => {
-                                if (a !== audio && !a.paused) {
-                                    a.pause();
-                                    a.currentTime = 0;
-                                }
-                            });
+                            const reel = entry.target;
+                            // Find index of the currently active reel
+                            currentReelIndex = Array.from(reels).indexOf(reel);
                             
-                            // Play the intersecting reel's audio
-                            if (audio) {
-                                audio.play().catch(e => console.log('Autoplay blocked:', e));
+                            const audioSrc = reel.getAttribute('data-audio-src');
+                            
+                            // Prevent restarting audio if it's already the active one
+                            if (audioPlayer.getAttribute('src') !== audioSrc) {
+                                audioPlayer.src = audioSrc;
+                                audioPlayer.currentTime = 0;
                             }
-                        } else {
-                            // Pause when leaving viewport
-                            if (audio && !audio.paused) {
-                                audio.pause();
-                                audio.currentTime = 0;
-                            }
-                        }
+                            audioPlayer.play().catch(e => console.log('Autoplay blocked:', e));
+                        } 
                     });
                 }, observerOptions);
 
                 // Observe all reels
-                document.querySelectorAll('.reel').forEach(reel => {
+                reels.forEach(reel => {
                     observer.observe(reel);
                 });
             }
             
             // Allow clicking on a reel to pause/play
             let dragDistance = 0;
-            document.querySelectorAll('.reel').forEach(reel => {
+            reels.forEach(reel => {
                 reel.addEventListener('click', (e) => {
                     // Ignore clicks on buttons
                     if(e.target.closest('.action-button')) return;
                     if(dragDistance > 10) return; // It was a drag, not a click
                     
-                    const audio = reel.querySelector('audio');
-                    if(audio) {
-                        if(audio.paused) {
-                            audio.play();
+                    // Only pause/play if this container is the currently active playing one
+                    if (Array.from(reels).indexOf(reel) === currentReelIndex) {
+                        if(audioPlayer.paused) {
+                            audioPlayer.play();
                         } else {
-                            audio.pause();
+                            audioPlayer.pause();
                         }
                     }
                 });
