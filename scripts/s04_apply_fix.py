@@ -1,10 +1,6 @@
 import glob
 import os
 import json
-import sys
-sys.path.insert(0, os.path.dirname(__file__))
-from text_utils import process_text
-
 all_segments = {}
 for text_file in glob.glob("data/02_segments/*.txt"):
     fname_root = os.path.splitext(os.path.basename(text_file))[0]
@@ -39,7 +35,6 @@ for fname_root, data in all_segments.items():
             final_str += fixed_word
             text_idx = right_idx
         final_str += text[text_idx:]
-        final_str = process_text(final_str)
 
         with open(out_file, 'w') as f:
             f.write(final_str)
