@@ -8,6 +8,7 @@ from website.db_select import (
 from website.index_manticore import fuzzy_search
 from website.services.vector_search import vector_search_query
 from website.services.llm_chat import chat_with_llm
+from website.services.generator import generate_creative_sentence
 import json
 import hashlib
 
@@ -26,6 +27,35 @@ def index():
     else:
         sentences = select_all_sentences()
     return render_template("index.html", sentences=sentences, query=query)
+
+
+@app.route("/generate", methods=["GET", "POST"])
+def generate():
+    keywords = ""
+    output = ""
+    examples = []
+    if request.method == "POST":
+        keywords = request.form.get("keywords", "")
+        if keywords:
+            # 1. Get style examples from Manticore
+            search_results = fuzzy_search("sentence", keywords)
+            if not search_results:
+                # Fallback to some random sentences if no fuzzy match
+                sentences_data = select_all_sentences()
+                import random
+                examples = [s['text'] for s in random.sample(sentences_data, min(len(sentences_data), 5))]
+            else:
+                ids = [r['id'] for r in search_results[:5]]
+                sentences_data = select_sentences(ids)
+                examples = [s['text'] for s in sentences_data]
+
+            # 2. Generate
+            try:
+                output = generate_creative_sentence(keywords, examples)
+            except Exception as e:
+                output = f"Error: {str(e)}"
+    
+    return render_template("generate.html", keywords=keywords, output=output)
 
 
 @app.route("/reels")
