@@ -1,3 +1,6 @@
+from website.add_sentence import add_sentence
+
+
 def load_texts():
     lines = []
     with open("data/05_dedup/all.txt") as f:
@@ -6,10 +9,9 @@ def load_texts():
             if len(line) < 3:
                 continue
             lines.append(line)
-    print("LOADED ", len(lines), ' SENTENCES')
+    print("LOADED ", len(lines), " SENTENCES")
     return lines
 
-from website.add_sentence import add_sentence
 
 for text in load_texts():
     add_sentence(text)

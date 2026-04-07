@@ -6,7 +6,7 @@
         "ms-python.vscode-python-envs",
         "charliermarsh.ruff",
         "rust-lang.rust-analyzer",
-        "sst-dev.opencode",
-        "kilocode.Kilo-Code",
+        // "sst-dev.opencode",
+        // "kilocode.Kilo-Code",
     ]
 }

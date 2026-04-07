@@ -1,6 +1,6 @@
 {
     "python.useEnvironmentsExtension": false,
-    "python.useEnvsExtension": true,
+    // "python.useEnvsExtension": true,
     "python-envs.workspaceSearchPaths": [
         "./**/.venv",
         ".venv"

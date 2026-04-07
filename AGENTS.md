@@ -1,6 +1,7 @@
 # Tech Details
 
 - The project uses `uv` package manager. Always run commands as modules with `uv run -m ...`
+- The project uses `ruff` for linting. Always run the linter with `uv run ruff check` and fix errors before continuing.
 - The database is `mariadb` version 12 - do not use MySQL dialects where MariaDB functions differ.
 
 

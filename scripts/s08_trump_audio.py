@@ -4,7 +4,7 @@ from website.database import db_connect, APP_DB
 
 cur = db_connect(APP_DB)
 cur.execute("SELECT id, text FROM sentence")
-text_rows = cur.fetchall()
+text_rows = cur.fetchall()[::-1]
 
 cur.execute("SELECT id FROM sentence_audiogen")
 audio_skip = cur.fetchall()
@@ -15,6 +15,7 @@ for id, text in text_rows:
         continue
     print("AUDIOGEN ", id, text[:20])
     audio_bytes = genaudio(text)
-    cur.execute("INSERT INTO sentence_audiogen(id, audio_mp3) VALUES (%s, %s)",
-        (id, audio_bytes)
+    cur.execute(
+        "INSERT INTO sentence_audiogen(id, audio_mp3) VALUES (%s, %s)",
+        (id, audio_bytes),
     )
