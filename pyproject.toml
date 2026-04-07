@@ -8,10 +8,12 @@ dependencies = [
     "bs4>=0.0.2",
     "flask>=3.1.3",
     "openai>=2.30.0",
+    "pip>=26.0.1",
     "pre-commit>=4.5.1",
     "pymupdf>=1.27.2.2",
     "pymysql[rsa]>=1.1.2",
     "requests>=2.33.0",
+    "ro-core-news-lg",
     "rowordnet>=1.1.0",
     "sentence-transformers>=5.3.0",
     "setuptools==69.5.1",
@@ -24,3 +26,6 @@ dependencies = [
 dev = [
     "ruff>=0.15.9",
 ]
+
+[tool.uv.sources]
+ro-core-news-lg = { url = "https://github.com/explosion/spacy-models/releases/download/ro_core_news_lg-3.8.0/ro_core_news_lg-3.8.0-py3-none-any.whl" }

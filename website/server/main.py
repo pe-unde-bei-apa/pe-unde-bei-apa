@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, Response
+from flask import Flask, render_template, request
 from website.db_select import (
     select_all_sentences,
     select_sentences,
@@ -10,7 +10,6 @@ from website.services.vector_search import vector_search_query
 from website.services.llm_chat import chat_with_llm
 from website.services.generator import generate_creative_sentence
 import json
-import hashlib
 
 app = Flask(__name__)
 
@@ -43,18 +42,22 @@ def generate():
                 # Fallback to some random sentences if no fuzzy match
                 sentences_data = select_all_sentences()
                 import random
-                examples = [s['text'] for s in random.sample(sentences_data, min(len(sentences_data), 5))]
+
+                examples = [
+                    s["text"]
+                    for s in random.sample(sentences_data, min(len(sentences_data), 5))
+                ]
             else:
-                ids = [r['id'] for r in search_results[:20]]
+                ids = [r["id"] for r in search_results[:20]]
                 sentences_data = select_sentences(ids)
-                examples = [s['text'] for s in sentences_data]
+                examples = [s["text"] for s in sentences_data]
 
             # 2. Generate
             try:
                 output = generate_creative_sentence(keywords, examples)
             except Exception as e:
                 output = f"Error: {str(e)}"
-    
+
     return render_template("generate.html", keywords=keywords, output=output)
 
 

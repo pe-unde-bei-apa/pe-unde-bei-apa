@@ -1,5 +1,4 @@
 from website.database import db_connect, APP_DB, DEXONLINE_DB
-from website.index_manticore import index_manticore, create_index_table
 
 
 def select_all_sentences():
@@ -35,12 +34,12 @@ def get_dexonline_definitions(word):
     with db_connect(DEXONLINE_DB, dict=True) as cur:
         cur.execute(
             "SELECT * FROM Definition WHERE lexicon = %s LIMIT 10",
-            ( word.lower()),
+            (word.lower()),
         )
-        l = cur.fetchall()
-        print("DEXONLINE HIT COUNT", len(l))
-        print(l)
-        return l
+        lll = cur.fetchall()
+        print("DEXONLINE HIT COUNT", len(lll))
+        print(lll)
+        return lll
 
 
 def get_wordnet_synsets(word):
@@ -70,6 +69,6 @@ def get_word_data(word):
         "word": word,
         "lemma": word,
         # "wordnet_synsets": get_wordnet_synsets(word),
-        'wordnet_sysnets': [],
+        "wordnet_sysnets": [],
         "dexonline_definitions": get_dexonline_definitions(word),
     }

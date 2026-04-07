@@ -1,10 +1,7 @@
 import pymysql
-import functools
 
 DEXONLINE_DB = "dexonline"
 APP_DB = "pe_unde_bei_apa"
-
-from pymysql.err import IntegrityError
 
 
 # @functools.lru_cache(maxsize=4)
