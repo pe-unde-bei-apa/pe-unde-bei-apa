@@ -45,7 +45,7 @@ def generate():
                 import random
                 examples = [s['text'] for s in random.sample(sentences_data, min(len(sentences_data), 5))]
             else:
-                ids = [r['id'] for r in search_results[:5]]
+                ids = [r['id'] for r in search_results[:20]]
                 sentences_data = select_sentences(ids)
                 examples = [s['text'] for s in sentences_data]
 
