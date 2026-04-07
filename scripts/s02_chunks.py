@@ -21,8 +21,6 @@ segments.append(current_segment)
 
 os.makedirs("data/02_segments", exist_ok=True)
 for i, segment in enumerate(segments):
-    filename = 'data/02_segments/' + f'{i:04}' + ".txt"
-    with open(filename, 'w') as f:
+    filename = "data/02_segments/" + f"{i:04}" + ".txt"
+    with open(filename, "w") as f:
         f.write(segment)
-            
-    

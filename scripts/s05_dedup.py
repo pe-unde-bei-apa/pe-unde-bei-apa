@@ -4,10 +4,12 @@ import string
 present = set()
 lines = []
 
+
 def reduce(line: str):
     line = line.lower()
     characters = string.ascii_letters + string.digits
-    return ''.join(a for a in line if a in characters)
+    return "".join(a for a in line if a in characters)
+
 
 for file in glob.glob("data/04_corrected_text/*.txt"):
     with open(file) as f:
@@ -22,6 +24,5 @@ for file in glob.glob("data/04_corrected_text/*.txt"):
             present.add(reduced_line)
 
 
-with open('data/05_dedup/all.txt', 'w') as f:
-    f.write('\n\n'.join(lines))
-            
+with open("data/05_dedup/all.txt", "w") as f:
+    f.write("\n\n".join(lines))
