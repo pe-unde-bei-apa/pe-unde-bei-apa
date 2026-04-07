@@ -9,7 +9,8 @@ nlp = spacy.load("ro_core_news_lg")
 gemma_model_path = os.path.join(
     os.path.dirname(__file__), "..", "..", "models", "embeddinggemma-300m"
 )
-gemma_model = SentenceTransformer(gemma_model_path, device='cpu')
+# gemma_model = SentenceTransformer(gemma_model_path, device='cpu')
+gemma_model = None
 
 
 def edit_distance_search(query_text, top_k=50):
@@ -51,6 +52,10 @@ def vector_search_query(query_text, model="spacy", top_k=50):
         return edit_distance_search(query_text, top_k)
 
     if model == "gemma":
+        global gemma_model
+        if gemma_model is None:
+            gemma_model = SentenceTransformer(gemma_model_path, device="cpu")
+
         query_vector = gemma_model.encode(query_text).tolist()
         table = "sentence_vect_gemma"
     else:
