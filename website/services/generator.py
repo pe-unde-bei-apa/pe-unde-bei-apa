@@ -1,8 +1,6 @@
 import random
 import spacy
 import re
-import os
-
 # Load the Romanian model (it should already be installed)
 # We disable components we don't need for speed
 try:
@@ -244,26 +242,7 @@ def generate_creative_sentence(keywords, examples, **kwargs) -> str:
 
     # General fallback templates to ensure variety
     GENERAL_TEMPLATES = [
-        "Acolo am văzut un lucru interesant ieri.",
-        "Nu se poate spune că totul este perfect aici.",
-        "Vreau să plec cât mai repede în vacanță.",
-        "Nimic nu se compară cu o zi liniștită la soare.",
-        "Cineva a lăsat ușa deschisă la intrare.",
-        "Mă gândeam să încerc ceva nou mâine dimineață.",
-        "Este foarte greu să găsești un loc de parcare.",
-        "Oamenii sunt mereu grăbiți în acest oraș mare.",
-        "Cerul este senin și vântul bate ușor astăzi.",
-        "Trebuie să fim atenți la detalii de fiecare dată.",
-        "Am auzit că se va scumpi totul săptămâna viitoare.",
-        "Nu uita să iei cheile când pleci de acasă.",
-        "Oricine poate face asta dacă are puțină răbdare.",
-        "Mâncarea de aici are un gust foarte ciudat.",
-        "Uneori simt că timpul trece prea repede pe lângă noi.",
-        "Aș vrea să știu unde este sursa acestui zgomot.",
-        "Vino aici să îți arăt o poză foarte veche.",
-        "Dacă aș fi știut, nu aș mai fi venit deloc.",
-        "Fiecare moment contează atunci când ești fericit.",
-        "Sper să ne întâlnim din nou în curând acolo."
+    "Na eroare bagamias pula"
     ]
 
     # 2. Pick a template sentence
