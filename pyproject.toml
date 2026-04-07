@@ -12,6 +12,7 @@ dependencies = [
     "pre-commit>=4.5.1",
     "pymupdf>=1.27.2.2",
     "pymysql[rsa]>=1.1.2",
+    "pytest>=9.0.3",
     "requests>=2.33.0",
     "ro-core-news-lg",
     "rowordnet>=1.1.0",

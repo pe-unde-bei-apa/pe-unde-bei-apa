@@ -11,7 +11,7 @@ from website.database import db_connect, APP_DB
 
 # Core Client Configuration
 # Base URL for the friend's hosted Ollama/AI server
-client = OpenAI(base_url="http://192.168.1.147:11434", api_key="pula")
+client = OpenAI(base_url="http://127.0.0.1:11434", api_key="pula")
 
 # Set the AI model name here (e.g., 'llama3' or 'gemma')
 MODEL_NAME = "nume-model-tovaras"
