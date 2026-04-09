@@ -6,6 +6,8 @@ from website.db_select import (
     select_sentences,
     select_audio_bytes,
     get_word_data,
+    record_like,
+    select_all_sentences_scored,
 )
 from website.index_manticore import fuzzy_search
 from website.services.llm_chat import chat_with_llm
@@ -69,8 +71,20 @@ def generate():
 
 @app.route("/reels")
 def reels():
-    sentences = select_all_sentences()
+    sentences = select_all_sentences_scored()
     return render_template("reels.html", sentences=sentences)
+
+
+@app.route("/like/<int:id>", methods=["POST"])
+def like(id):
+    record_like(id, 1)
+    return {"status": "ok"}
+
+
+@app.route("/unlike/<int:id>", methods=["POST"])
+def unlike(id):
+    record_like(id, -1)
+    return {"status": "ok"}
 
 
 @app.route("/sentence/<id>")

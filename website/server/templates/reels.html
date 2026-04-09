@@ -135,6 +135,32 @@
             font-size: 1.2rem;
             opacity: 0.8;
         }
+        .action-button.liked {
+            color: #ff2d55;
+            background-color: rgba(255, 45, 85, 0.2);
+        }
+
+        .heart-animation {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            font-size: 100px;
+            color: white;
+            z-index: 10;
+            pointer-events: none;
+            opacity: 0;
+        }
+
+        @keyframes heart-burst {
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+            50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+        }
+
+        .animate-heart {
+            animation: heart-burst 0.8s ease-out forwards;
+        }
     </style>
 </head>
 <body>
@@ -146,7 +172,8 @@
 
     <div class="reels-container" id="reelsContainer" style="display: none;">
         {% for sentence in sentences %}
-        <div class="reel" data-audio-src="/audio/{{ sentence.id }}">
+        <div class="reel" data-audio-src="/audio/{{ sentence.id }}" data-id="{{ sentence.id }}">
+            <div class="heart-animation">❤️</div>
             <!-- Generate image using Lorem Picsum based on sentence text for reliable, unique loading -->
             <img src="https://picsum.photos/seed/{{ sentence.text | urlencode }}/1080/1920" alt="Generated context" class="reel-bg" loading="lazy">
             <div class="reel-overlay"></div>
@@ -157,6 +184,9 @@
             </div>
 
             <div class="interactions">
+                <div class="action-button like-button" title="Like" data-id="{{ sentence.id }}">
+                   ❤️
+                </div>
                 <a class="action-button" href="/sentence/{{ sentence.id }}" title="View Details">
                    ℹ️ 
                 </a>
@@ -177,19 +207,45 @@
             
             let currentReelIndex = 0;
             let currentAudioSrc = null;
+            let reelStartTime = Date.now();
+            let hasInteractedAtCurrentReel = false;
             
             // Autonext implementation
             audioPlayer.addEventListener('ended', () => {
+                const currentId = reels[currentReelIndex].getAttribute('data-id');
+                hasInteractedAtCurrentReel = true; // Finished audio, so not a skip
+                // Auto-like on completion
+                if (!document.querySelector(`.like-button[data-id="${currentId}"]`).classList.contains('liked')) {
+                    recordAction(currentId, 'like');
+                }
+                
                 // If there's a next reel, scroll to it smoothly
                 if (currentReelIndex < reels.length - 1) {
                     reels[currentReelIndex + 1].scrollIntoView({ behavior: 'smooth' });
                 }
             });
 
+            function recordAction(id, type) {
+                fetch(`/${type}/${id}`, { method: 'POST' });
+            }
+
             function playAudioForReel(index) {
                 if (index < 0 || index >= reels.length) return;
                 
+                // Track skip for previous reel
+                if (currentReelIndex !== index) {
+                    const timeSpent = (Date.now() - reelStartTime) / 1000;
+                    const prevReelId = reels[currentReelIndex].getAttribute('data-id');
+                    // If skipped before 3 seconds and no like was given, record as unlike/skip
+                    if (timeSpent < 3 && !hasInteractedAtCurrentReel) {
+                        recordAction(prevReelId, 'unlike');
+                    }
+                }
+
                 currentReelIndex = index;
+                reelStartTime = Date.now();
+                hasInteractedAtCurrentReel = false;
+
                 const reel = reels[index];
                 const audioSrc = reel.getAttribute('data-audio-src');
                 
@@ -213,6 +269,7 @@
                 // Direct play event inline inside the user click handler 
                 if (reels.length > 0) {
                     currentReelIndex = 0;
+                    reelStartTime = Date.now();
                     const audioSrc = reels[0].getAttribute('data-audio-src');
                     currentAudioSrc = audioSrc;
                     audioPlayer.src = audioSrc;
@@ -247,7 +304,21 @@
                 });
             }
             
-            // Allow clicking on a reel to pause/play
+            // Interaction handlers
+            document.querySelectorAll('.like-button').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const id = btn.getAttribute('data-id');
+                    btn.classList.toggle('liked');
+                    if (btn.classList.contains('liked')) {
+                        recordAction(id, 'like');
+                        hasInteractedAtCurrentReel = true;
+                    }
+                });
+            });
+
+            // Allow clicking on a reel to pause/play and double click to like
+            let lastTap = 0;
             let dragDistance = 0;
             reels.forEach(reel => {
                 reel.addEventListener('click', (e) => {
@@ -255,14 +326,39 @@
                     if(e.target.closest('.action-button')) return;
                     if(dragDistance > 10) return; // It was a drag, not a click
                     
-                    // Only pause/play if this container is the currently active playing one
-                    if (Array.from(reels).indexOf(reel) === currentReelIndex) {
-                        if(audioPlayer.paused) {
-                            audioPlayer.play();
-                        } else {
-                            audioPlayer.pause();
+                    const now = Date.now();
+                    const id = reel.getAttribute('data-id');
+                    const likeBtn = reel.querySelector('.like-button');
+                    
+                    if (now - lastTap < 300) {
+                        // Double tap - Like
+                        if (!likeBtn.classList.contains('liked')) {
+                            likeBtn.classList.add('liked');
+                            recordAction(id, 'like');
                         }
+                        hasInteractedAtCurrentReel = true;
+                        
+                        // Heart animation
+                        const heart = reel.querySelector('.heart-animation');
+                        heart.classList.remove('animate-heart');
+                        void heart.offsetWidth; // trigger reflow
+                        heart.classList.add('animate-heart');
+                    } else {
+                        // Single tap - Pause/Play
+                        // Delay execution to check for double tap
+                        setTimeout(() => {
+                            if (Date.now() - lastTap >= 300) {
+                                if (Array.from(reels).indexOf(reel) === currentReelIndex) {
+                                    if(audioPlayer.paused) {
+                                        audioPlayer.play();
+                                    } else {
+                                        audioPlayer.pause();
+                                    }
+                                }
+                            }
+                        }, 300);
                     }
+                    lastTap = now;
                 });
             });
 

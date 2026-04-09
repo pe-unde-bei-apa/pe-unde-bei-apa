@@ -84,3 +84,47 @@ def get_word_data(word):
         "wordnet_sysnets": [],
         "dexonline_definitions": get_dexonline_definitions(word),
     }
+
+
+def record_like(sentence_id, action_type):
+    """
+    action_type: 1 for like, -1 for unlike/skip
+    """
+    with db_connect(APP_DB) as cur:
+        cur.execute(
+            "INSERT INTO sentence_likes (sentence_id, action_type) VALUES (%s, %s)",
+            (sentence_id, action_type),
+        )
+
+
+def get_sentence_scores():
+    with db_connect(APP_DB) as cur:
+        cur.execute(
+            """
+            SELECT sentence_id, SUM(action_type) as score 
+            FROM sentence_likes 
+            GROUP BY sentence_id
+            """
+        )
+        return {row[0]: row[1] for row in cur.fetchall()}
+
+
+def select_all_sentences_scored():
+    scores = get_sentence_scores()
+    sentences = select_all_sentences()
+    for s in sentences:
+        s["score"] = scores.get(s["id"], 0)
+
+    # TikTok-ish logic:
+    # 1. Higher scores have higher probability of appearing higher
+    # 2. Add some randomness so it's not strictly deterministic
+    # 3. Penalize or boost based on recent activity (optional, but keep it simple for now)
+
+    # Simple weighted selection:
+    # We'll group them and sort basically, but let's try a better approach:
+    # Sort by score + some random noise
+    import random
+
+    sentences.sort(key=lambda x: x["score"] + (random.random() * 2 - 1), reverse=True)
+
+    return sentences
