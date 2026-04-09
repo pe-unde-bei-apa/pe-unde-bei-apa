@@ -138,6 +138,7 @@
     </style>
 </head>
 <body>
+    <audio id="mainAudio" playsinline style="display: none;"></audio>
     <div id="playPrompt" class="play-prompt">
         <h1>Tap to Start</h1>
         <p>Enable autoplay</p>
@@ -172,8 +173,7 @@
             let isStarted = false;
 
             // Global audio player for mobile (iOS explicit unlock)
-            const audioPlayer = new Audio();
-            audioPlayer.playsInline = true;
+            const audioPlayer = document.getElementById('mainAudio');
             
             let currentReelIndex = 0;
             let currentAudioSrc = null;
@@ -197,9 +197,10 @@
                     currentAudioSrc = audioSrc;
                     audioPlayer.src = audioSrc;
                     audioPlayer.currentTime = 0;
+                    audioPlayer.play().catch(e => console.log('Autoplay blocked:', e));
+                } else if (audioPlayer.paused) {
+                    audioPlayer.play().catch(e => console.log('Autoplay blocked:', e));
                 }
-                
-                audioPlayer.play().catch(e => console.log('Autoplay blocked:', e));
             }
 
             // Start interaction to allow autoplay
@@ -209,8 +210,15 @@
                 playPrompt.style.display = 'none';
                 reelsContainer.style.display = 'block';
                 
-                // Start playing the first sound immediately during the click event to unlock iOS audio
-                playAudioForReel(0);
+                // Direct play event inline inside the user click handler 
+                if (reels.length > 0) {
+                    currentReelIndex = 0;
+                    const audioSrc = reels[0].getAttribute('data-audio-src');
+                    currentAudioSrc = audioSrc;
+                    audioPlayer.src = audioSrc;
+                    audioPlayer.load();
+                    audioPlayer.play().catch(e => console.log('Autoplay blocked:', e));
+                }
                 
                 // Initialize observer only after user interaction
                 initObserver();
