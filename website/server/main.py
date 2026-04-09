@@ -1,3 +1,5 @@
+from flask import url_for
+from flask import redirect
 from flask import Flask, render_template, request
 from website.db_select import (
     select_all_sentences,
@@ -6,7 +8,6 @@ from website.db_select import (
     get_word_data,
 )
 from website.index_manticore import fuzzy_search
-from website.services.vector_search import vector_search_query
 from website.services.llm_chat import chat_with_llm
 from website.services.generator import generate_creative_sentence
 import json
@@ -16,6 +17,11 @@ app = Flask(__name__)
 
 @app.route("/")
 def index():
+    return redirect(url_for("reels"))
+
+
+@app.route("/all_sentences")
+def all_sentences():
     query = request.args.get("q", "")
     if query:
         results = fuzzy_search("sentence", query)
@@ -25,7 +31,7 @@ def index():
             s["high"] = map[s["id"]]
     else:
         sentences = select_all_sentences()
-    return render_template("index.html", sentences=sentences, query=query)
+    return render_template("all_sentences.html", sentences=sentences, query=query)
 
 
 @app.route("/generate", methods=["GET", "POST"])
@@ -90,6 +96,8 @@ def get_audio(id):
 
 @app.route("/vectorsearch")
 def vectorsearch():
+    from website.services.vector_search import vector_search_query
+
     query = request.args.get("q", "")
     model = request.args.get("model", "spacy")
     if query:
