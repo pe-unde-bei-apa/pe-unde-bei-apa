@@ -91,7 +91,11 @@ def sentence(id):
 
 @app.route("/audio/<id>")
 def get_audio(id):
-    return select_audio_bytes(id)
+    import io
+    from flask import send_file
+
+    audio_bytes = select_audio_bytes(id)
+    return send_file(io.BytesIO(audio_bytes), mimetype="audio/mpeg")
 
 
 @app.route("/vectorsearch")
