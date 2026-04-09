@@ -4,7 +4,7 @@ import spacy
 from sentence_transformers import SentenceTransformer
 from website.database import APP_DB, db_connect
 
-nlp = spacy.load("ro_core_news_lg")
+nlp = spacy.load("ro_core_news_sm")
 
 gemma_model_path = os.path.join(
     os.path.dirname(__file__), "..", "..", "models", "embeddinggemma-300m"

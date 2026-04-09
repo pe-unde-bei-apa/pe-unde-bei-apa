@@ -7,7 +7,7 @@ import re
 try:
     # Use a more minimal pipeline for efficiency
     # 'ner', 'textcat', and 'parser' are usually not needed for basic POS and lemmatization
-    nlp = spacy.load("ro_core_news_lg", disable=["ner", "textcat", "parser"])
+    nlp = spacy.load("ro_core_news_sm", disable=["ner", "textcat", "parser"])
 except Exception as e:
     print(f"Error loading spacy model in generator: {e}")
     nlp = None

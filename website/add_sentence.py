@@ -3,7 +3,7 @@ import json
 from spacy import displacy
 from website.database import APP_DB, db_connect, IntegrityError
 
-nlp = spacy.load("ro_core_news_lg")
+nlp = spacy.load("ro_core_news_sm")
 
 
 def add_sentence(text):

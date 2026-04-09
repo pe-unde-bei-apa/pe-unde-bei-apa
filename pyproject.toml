@@ -11,7 +11,7 @@ dependencies = [
     "pymysql[rsa]>=1.1.2",
     "pytest>=9.0.3",
     "requests>=2.33.0",
-    "ro-core-news-lg",
+    "ro-core-news-sm",
     "rowordnet>=1.1.0",
     "setuptools==69.5.1",
     "spacy>=3.8.14",
@@ -24,4 +24,4 @@ dev = [
 ]
 
 [tool.uv.sources]
-ro-core-news-lg = { url = "https://github.com/explosion/spacy-models/releases/download/ro_core_news_lg-3.8.0/ro_core_news_lg-3.8.0-py3-none-any.whl" }
+ro-core-news-sm = { url = "https://github.com/explosion/spacy-models/releases/download/ro_core_news_sm-3.8.0/ro_core_news_sm-3.8.0-py3-none-any.whl" }
