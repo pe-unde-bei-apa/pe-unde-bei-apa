@@ -4,9 +4,18 @@ from website.database import db_connect, APP_DB, DEXONLINE_DB
 def select_all_sentences():
     with db_connect(APP_DB, dict=True) as cur:
         cur.execute(
-            "SELECT * FROM sentence INNER JOIN sentence_anal ON sentence.id = sentence_anal.id"
+            """
+            SELECT * FROM sentence
+            INNER JOIN sentence_anal
+            ON sentence.id = sentence_anal.id
+            INNER JOIN sentence_audiogen
+            ON sentence.id = sentence_audiogen.id
+            """
         )
         rows = cur.fetchall()
+        import random
+
+        random.shuffle(rows)
         return rows
 
 
@@ -17,7 +26,10 @@ def select_sentences(ids):
     with db_connect(APP_DB, dict=True) as cur:
         ss = ",".join("%s" for _i in ids)
         cur.execute(
-            f"SELECT * FROM sentence INNER JOIN sentence_anal ON sentence.id = sentence_anal.id WHERE sentence.id IN ({ss})",
+            f"""SELECT * FROM sentence 
+            INNER JOIN sentence_anal 
+            ON sentence.id = sentence_anal.id 
+            WHERE sentence.id IN ({ss})""",
             tuple(ids),
         )
         rows = cur.fetchall()
