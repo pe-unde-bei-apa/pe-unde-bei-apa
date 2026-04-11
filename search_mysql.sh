@@ -1,1 +1,1 @@
-docker exec -it manticore    mysql -h 10.200.200.1 -P 19306
+docker exec -it manticore    mysql -h 127.0.0.1 -P 19306
