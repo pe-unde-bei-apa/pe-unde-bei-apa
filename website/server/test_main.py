@@ -11,7 +11,7 @@ def client():
 
 def test_index_route(client):
     response = client.get("/")
-    assert response.status_code == 200
+    assert response.status_code == 302
 
 
 def test_generate_route(client):
