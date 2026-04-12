@@ -113,7 +113,7 @@ def select_all_sentences_scored():
     scores = get_sentence_scores()
     sentences = select_all_sentences()
     for s in sentences:
-        s["score"] = scores.get(s["id"], 0)
+        s["score"] = float(scores.get(s["id"], 0))
 
     # TikTok-ish logic:
     # 1. Higher scores have higher probability of appearing higher
