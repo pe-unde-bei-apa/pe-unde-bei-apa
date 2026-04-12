@@ -125,6 +125,6 @@ def select_all_sentences_scored():
     # Sort by score + some random noise
     import random
 
-    sentences.sort(key=lambda x: x["score"] + (random.random() * 2 - 1), reverse=True)
+    sentences.sort(key=lambda x: x["score"] + (random.random() * 3 - 1), reverse=True)
 
     return sentences
