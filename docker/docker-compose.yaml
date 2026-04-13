@@ -6,6 +6,7 @@ services:
     restart: always
     environment:
       MARIADB_ROOT_PASSWORD: pula
+      MARIADB_DATABASE: pe_unde_bei_apa
     volumes:
       - ./db_data/mariadb:/var/lib/mysql
       - ./db_dumps:/db_dumps
