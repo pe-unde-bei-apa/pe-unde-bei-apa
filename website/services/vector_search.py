@@ -1,7 +1,6 @@
 import os
 import json
 import spacy
-from sentence_transformers import SentenceTransformer
 from website.database import APP_DB, db_connect
 
 nlp = spacy.load("ro_core_news_sm")
@@ -54,6 +53,8 @@ def vector_search_query(query_text, model="spacy", top_k=50):
     if model == "gemma":
         global gemma_model
         if gemma_model is None:
+            from sentence_transformers import SentenceTransformer
+
             gemma_model = SentenceTransformer(gemma_model_path, device="cpu")
 
         query_vector = gemma_model.encode(query_text).tolist()

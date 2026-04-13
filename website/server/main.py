@@ -12,6 +12,9 @@ from website.db_select import (
 from website.index_manticore import fuzzy_search
 from website.services.llm_chat import chat_with_llm
 from website.services.generator import generate_creative_sentence
+from website.services.vector_search import vector_search_query
+from website.add_sentence import add_sentence
+from website.database import db_connect, APP_DB
 import json
 
 app = Flask(__name__)
@@ -147,19 +150,37 @@ def api_suggest():
     if not query:
         return {"suggestions": []}
 
-    results = fuzzy_search("sentence", query)[:3]
+    # Switch to vector search for better semantic matching
+    results = vector_search_query(query, model="spacy", top_k=3)
     if not results:
         return {"suggestions": []}
 
-    sentences = select_sentences([r["id"] for r in results])
-    id_to_text = {s["id"]: s["text"] for s in sentences}
-
-    suggestions = [
-        {"id": r["id"], "text": id_to_text.get(r["id"])}
-        for r in results
-        if r["id"] in id_to_text
-    ]
+    suggestions = [{"id": r["id"], "text": r["text"]} for r in results]
     return {"suggestions": suggestions}
+
+
+@app.route("/api/upload_sentence", methods=["POST"])
+def api_upload_sentence():
+    text = request.form.get("text")
+    audio_file = request.files.get("audio")
+
+    if not text or not audio_file:
+        return {"error": "Missing text or audio"}, 400
+
+    # 1. Add sentence and get ID
+    new_id = add_sentence(text)
+    if not new_id:
+        return {"error": "Failed to create or find sentence ID"}, 500
+
+    # 2. Save audio blob (REPLACE to handle existing entries)
+    audio_bytes = audio_file.read()
+    with db_connect(APP_DB) as cur:
+        cur.execute(
+            "REPLACE INTO sentence_audiogen (id, audio_mp3) VALUES (%s, %s)",
+            (new_id, audio_bytes),
+        )
+
+    return {"id": new_id, "text": text}
 
 
 if __name__ == "__main__":

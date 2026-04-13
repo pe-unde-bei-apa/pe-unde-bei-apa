@@ -145,6 +145,16 @@
             background-color: rgba(255, 45, 85, 0.2);
         }
 
+        .action-button:hover {
+            transform: scale(1.1);
+            background-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .action-button:active {
+            transform: scale(0.9);
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
         .heart-animation {
             position: absolute;
             top: 50%;
@@ -166,6 +176,131 @@
         .animate-heart {
             animation: heart-burst 0.8s ease-out forwards;
         }
+
+        .play-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100px;
+            height: 100px;
+            color: rgba(255, 255, 255, 0.4);
+            z-index: 15;
+            pointer-events: none;
+            display: none;
+            filter: drop-shadow(0 0 20px rgba(0,0,0,0.5));
+        }
+
+        .play-overlay svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .record-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.9);
+            z-index: 2000;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .record-modal {
+            background: #1e293b;
+            border-radius: 24px;
+            padding: 30px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .record-modal h3 {
+            margin-top: 0;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.5rem;
+        }
+
+        .record-modal textarea {
+            width: 100%;
+            height: 100px;
+            background: rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 15px;
+            color: white;
+            font-family: inherit;
+            font-size: 1.1rem;
+            margin: 20px 0;
+            resize: none;
+            box-sizing: border-box;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 15px;
+        }
+
+        .modal-button {
+            flex: 1;
+            padding: 15px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .modal-button:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.2);
+        }
+
+        .modal-button:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        .button-confirm {
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            color: white;
+        }
+
+        .button-exit {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+
+        .button-replay {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            margin-bottom: 20px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .action-button.recording {
+            background-color: #ff2d55;
+            animation: pulse-red 1s infinite;
+        }
+
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(255, 45, 85, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(255, 45, 85, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 45, 85, 0); }
+        }
+
         .top-search-bar {
             position: fixed;
             top: 20px;
@@ -253,6 +388,11 @@
         {% for sentence in sentences %}
         <div class="reel" data-audio-src="/audio/{{ sentence.id }}" data-id="{{ sentence.id }}">
             <div class="heart-animation">❤️</div>
+            <div class="play-overlay">
+                <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M19.045 10.299L8.3 4.192C6.913 3.411 5.143 4.414 5.143 6.004V17.996C5.143 19.586 6.913 20.589 8.3 19.808L19.045 13.701C20.318 12.981 20.318 11.019 19.045 10.299Z" />
+                </svg>
+            </div>
             <!-- Generate image using Lorem Picsum based on sentence text for reliable, unique loading -->
             <img src="https://picsum.photos/seed/{{ sentence.text | urlencode }}/1080/1920" alt="Generated context" class="reel-bg" loading="lazy">
             <div class="reel-overlay"></div>
@@ -263,6 +403,9 @@
             </div>
 
             <div class="interactions">
+                <div class="action-button add-button" title="Add Custom Sentence">
+                    ➕
+                </div>
                 <div class="action-button like-button" title="Like" data-id="{{ sentence.id }}">
                    ❤️
                 </div>
@@ -272,6 +415,18 @@
             </div>
         </div>
         {% endfor %}
+    </div>
+
+    <div id="recordOverlay" class="record-overlay">
+        <div class="record-modal">
+            <h3>Verifică Vorba</h3>
+            <button id="replayBtn" class="modal-button button-replay">🔊 Reascultă</button>
+            <textarea id="recordText" placeholder="Textul interpretat va apărea aici..."></textarea>
+            <div class="modal-actions">
+                <button id="exitBtn" class="modal-button button-exit">Ieși</button>
+                <button id="uploadBtn" class="modal-button button-confirm">Încarcă</button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -298,6 +453,19 @@
                 
                 if (currentReelIndex < reels.length - 1) {
                     reels[currentReelIndex + 1].scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+
+            audioPlayer.addEventListener('play', () => {
+                document.querySelectorAll('.play-overlay').forEach(el => el.style.display = 'none');
+            });
+
+            audioPlayer.addEventListener('pause', () => {
+                if (isStarted && !audioPlayer.ended) {
+                    const currentReel = reels[currentReelIndex];
+                    if (currentReel) {
+                        currentReel.querySelector('.play-overlay').style.display = 'block';
+                    }
                 }
             });
 
@@ -425,6 +593,194 @@
 
             reels.forEach(setupReelEvents);
 
+            // Custom Recording Logic
+            let mediaRecorder;
+            let audioChunks = [];
+            let recognition;
+            let recordedBlob;
+
+            const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (SpeechRec) {
+                console.log("Speech Recognition initialized successfully.");
+                recognition = new SpeechRec();
+                recognition.continuous = true;
+                recognition.interimResults = true;
+                recognition.lang = 'ro-RO';
+            } else {
+                console.log("CRITICAL: Speech Recognition is NOT supported in this browser.");
+            }
+
+            const recordOverlay = document.getElementById('recordOverlay');
+            const recordText = document.getElementById('recordText');
+            const replayBtn = document.getElementById('replayBtn');
+            const uploadBtn = document.getElementById('uploadBtn');
+            const exitBtn = document.getElementById('exitBtn');
+
+            async function startRecording(btn) {
+                audioChunks = [];
+                btn.classList.add('recording');
+                btn.innerText = '🎤';
+                console.log("Start recording attempt...");
+                
+                if (audioPlayer) audioPlayer.pause();
+                reelsContainer.style.overflowY = 'hidden';
+
+                try {
+                    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                        throw new Error("Suportul pentru microfon lipsește în acest browser.");
+                    }
+
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/ogg';
+                    mediaRecorder = new MediaRecorder(stream, { mimeType });
+                    
+                    mediaRecorder.ondataavailable = (e) => {
+                        if (e.data.size > 0) audioChunks.push(e.data);
+                    };
+                    
+                    mediaRecorder.onstop = () => {
+                        recordedBlob = new Blob(audioChunks, { type: mimeType });
+                        console.log("Recording stopped. MimeType:", mimeType, "Blob size:", recordedBlob.size);
+                    };
+                    
+                    mediaRecorder.start();
+                    console.log("MediaRecorder started with format:", mimeType);
+                    
+                    if (recognition) {
+                        recordText.value = "";
+                        recognition.onstart = () => console.log("Speech Recognition: Session started");
+                        recognition.onaudiostart = () => console.log("Speech Recognition: Audio capture started");
+                        recognition.onspeechstart = () => console.log("Speech Recognition: User is speaking...");
+                        recognition.onresult = (event) => {
+                            let result = "";
+                            for (let i = 0; i < event.results.length; ++i) {
+                                result += event.results[i][0].transcript;
+                            }
+                            console.log("Live transcription result:", result);
+                            recordText.value = result;
+                        };
+                        recognition.onerror = (e) => console.log("Speech Recognition ERROR:", e.error);
+                        recognition.onend = () => console.log("Speech Recognition: Session ended");
+                        try { recognition.start(); } catch(e) { console.log("Recognition start CATCH error:", e); }
+                    } else {
+                        console.log("Speech recognition not supported in this browser.");
+                    }
+                } catch (err) {
+                    console.error("Recording error:", err);
+                    alert("Eroare la pornirea microfonului: " + err.message);
+                    btn.classList.remove('recording');
+                    reelsContainer.style.overflowY = 'scroll';
+                }
+            }
+
+            function stopRecording(btn) {
+                console.log("Stop recording called");
+                if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                    mediaRecorder.stop();
+                    if (recognition) {
+                        try { recognition.stop(); } catch(e) {}
+                    }
+                    
+                    btn.classList.remove('recording');
+                    btn.innerText = '➕';
+                    setTimeout(() => {
+                        recordOverlay.style.display = 'flex';
+                    }, 500);
+                } else {
+                    btn.classList.remove('recording');
+                    btn.innerText = '➕';
+                    reelsContainer.style.overflowY = 'scroll';
+                }
+            }
+
+            document.querySelectorAll('.add-button').forEach(btn => {
+                btn.addEventListener('mousedown', () => startRecording(btn));
+                btn.addEventListener('mouseup', () => stopRecording(btn));
+                btn.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    startRecording(btn);
+                });
+                btn.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    stopRecording(btn);
+                });
+            });
+
+            replayBtn.addEventListener('click', () => {
+                const status = recordedBlob ? `${recordedBlob.size} bytes (${recordedBlob.type})` : "null";
+                console.log("Replay attempt. Blob:", status);
+                
+                if (recordedBlob) {
+                    try {
+                        const audioUrl = URL.createObjectURL(recordedBlob);
+                        const testAudio = new Audio();
+                        testAudio.src = audioUrl;
+                        
+                        testAudio.onloadstart = () => console.log("Audio load started...");
+                        testAudio.onplay = () => console.log("Audio play event fired!");
+                        testAudio.oncanplaythrough = () => console.log("Audio ready (canplaythrough)");
+
+                        testAudio.onerror = (e) => {
+                            console.error("Audio Load Error:", testAudio.error);
+                        };
+
+                        console.log("Forcing play immediate...");
+                        testAudio.play().then(() => {
+                            console.log("Play promise resolved successfully");
+                        }).catch(err => {
+                            console.error("Play promise rejected:", err);
+                        });
+                    } catch (e) {
+                        console.error("Critical Replay Error:", e);
+                    }
+                } else {
+                    alert("Nu s-a detectat nicio înregistrare validă.");
+                }
+            });
+
+            exitBtn.addEventListener('click', () => {
+                recordOverlay.style.display = 'none';
+                reelsContainer.style.overflowY = 'scroll';
+                recordText.value = "";
+                recordedBlob = null;
+            });
+
+            uploadBtn.addEventListener('click', async () => {
+                if (!recordText.value || !recordedBlob) return;
+                
+                uploadBtn.disabled = true;
+                uploadBtn.innerText = "Se încarcă...";
+
+                const formData = new FormData();
+                formData.append('text', recordText.value);
+                formData.append('audio', recordedBlob, 'audio.mp3');
+
+                try {
+                    const response = await fetch('/api/upload_sentence', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const data = await response.json();
+                    
+                    if (data.id) {
+                        recordOverlay.style.display = 'none';
+                        reelsContainer.style.overflowY = 'scroll';
+                        // Add to current UI and scroll to it
+                        insertAndScrollToReel({
+                            id: data.id,
+                            text: data.text
+                        });
+                        recordText.value = "";
+                        recordedBlob = null;
+                    }
+                } catch (err) {
+                    console.error("Upload failed:", err);
+                } finally {
+                    uploadBtn.disabled = false;
+                    uploadBtn.innerText = "Încarcă";
+                }
+            });
+
             // Add drag to scroll functionality
             let isDragging = false;
             let startY;
@@ -476,6 +832,11 @@
                 
                 newReel.innerHTML = `
                     <div class="heart-animation">❤️</div>
+                    <div class="play-overlay">
+                        <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M19.045 10.299L8.3 4.192C6.913 3.411 5.143 4.414 5.143 6.004V17.996C5.143 19.586 6.913 20.589 8.3 19.808L19.045 13.701C20.318 12.981 20.318 11.019 19.045 10.299Z" />
+                        </svg>
+                    </div>
                     <img src="https://picsum.photos/seed/${encodedText}/1080/1920" alt="Generated context" class="reel-bg" loading="lazy">
                     <div class="reel-overlay"></div>
                     
@@ -485,6 +846,9 @@
                     </div>
 
                     <div class="interactions">
+                        <div class="action-button add-button" title="Add Custom Sentence">
+                            ➕
+                        </div>
                         <div class="action-button like-button" title="Like" data-id="${sentence.id}">
                            ❤️
                         </div>
@@ -502,6 +866,20 @@
                 if (observer) {
                     observer.observe(newReel);
                 }
+                
+                // Set up events for the new record button
+                const newAddBtn = newReel.querySelector('.add-button');
+                newAddBtn.addEventListener('mousedown', () => startRecording(newAddBtn));
+                newAddBtn.addEventListener('mouseup', () => stopRecording(newAddBtn));
+                newAddBtn.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    startRecording(newAddBtn);
+                });
+                newAddBtn.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    stopRecording(newAddBtn);
+                });
+
                 setupReelEvents(newReel);
 
                 newReel.scrollIntoView({ behavior: 'smooth' });
