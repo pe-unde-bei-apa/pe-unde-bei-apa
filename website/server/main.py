@@ -141,29 +141,57 @@ def chat():
     return render_template("chat.html", prompt=prompt, output=output)
 
 
+@app.route("/api/suggest")
+def api_suggest():
+    query = request.args.get("q", "")
+    if not query:
+        return {"suggestions": []}
+
+    results = fuzzy_search("sentence", query)[:3]
+    if not results:
+        return {"suggestions": []}
+
+    sentences = select_sentences([r["id"] for r in results])
+    id_to_text = {s["id"]: s["text"] for s in sentences}
+
+    suggestions = [
+        {"id": r["id"], "text": id_to_text.get(r["id"])}
+        for r in results
+        if r["id"] in id_to_text
+    ]
+    return {"suggestions": suggestions}
+
+
 if __name__ == "__main__":
-    from gunicorn.app.base import BaseApplication
+    import sys
+    import os
 
-    class StandaloneApplication(BaseApplication):
-        def __init__(self, app, options=None):
-            self.options = options or {}
-            self.application = app
-            super().__init__()
+    if sys.platform == "win32":
+        # Gunicorn does not support Windows due to 'fcntl'
+        app.run(host="0.0.0.0", port=5000, debug=os.getenv("DEBUG", "1") == "1")
+    else:
+        from gunicorn.app.base import BaseApplication
 
-        def load_config(self):
-            config = {
-                key: value
-                for key, value in self.options.items()
-                if key in self.cfg.settings and value is not None
-            }
-            for key, value in config.items():
-                self.cfg.set(key.lower(), value)
+        class StandaloneApplication(BaseApplication):
+            def __init__(self, app, options=None):
+                self.options = options or {}
+                self.application = app
+                super().__init__()
 
-        def load(self):
-            return self.application
+            def load_config(self):
+                config = {
+                    key: value
+                    for key, value in self.options.items()
+                    if key in self.cfg.settings and value is not None
+                }
+                for key, value in config.items():
+                    self.cfg.set(key.lower(), value)
 
-    options = {
-        "bind": "0.0.0.0:5000",
-        "workers": 1,
-    }
-    StandaloneApplication(app, options).run()
+            def load(self):
+                return self.application
+
+        options = {
+            "bind": "0.0.0.0:5000",
+            "workers": 1,
+        }
+        StandaloneApplication(app, options).run()

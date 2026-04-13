@@ -166,6 +166,73 @@
         .animate-heart {
             animation: heart-burst 0.8s ease-out forwards;
         }
+        .top-search-bar {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .autocomplete {
+            position: relative;
+            display: block;
+        }
+
+        #reelsSearch {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 20px;
+            padding: 12px 20px;
+            color: white;
+            font-size: 1rem;
+            box-sizing: border-box;
+            backdrop-filter: blur(10px);
+            outline: none;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        #reelsSearch:focus {
+            background: rgba(0, 0, 0, 0.8);
+            border-color: rgba(255,255,255,0.5);
+        }
+
+        .suggestions {
+            position: absolute;
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 12px;
+            width: 100%;
+            max-height: 250px;
+            overflow-y: auto;
+            z-index: 1000;
+            top: calc(100% + 5px);
+            left: 0;
+            padding: 5px;
+            box-sizing: border-box;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            display: none;
+        }
+
+        .suggestion-item {
+            padding: 12px 15px;
+            cursor: pointer;
+            border-radius: 8px;
+            color: white;
+            transition: background 0.2s;
+            text-decoration: none;
+            display: block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .suggestion-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
     </style>
 </head>
 <body>
@@ -173,6 +240,13 @@
     <div id="playPrompt" class="play-prompt">
         <h1>Tap to Start</h1>
         <p>Enable autoplay</p>
+    </div>
+
+    <div class="top-search-bar" id="topSearchBar" style="display: none;">
+        <div class="autocomplete">
+            <input type="text" id="reelsSearch" placeholder="Cauta vorbe (minim 2 litere)..." autocomplete="off">
+            <div id="searchSuggestions" class="suggestions"></div>
+        </div>
     </div>
 
     <div class="reels-container" id="reelsContainer" style="display: none;">
@@ -204,27 +278,24 @@
         document.addEventListener('DOMContentLoaded', () => {
             const playPrompt = document.getElementById('playPrompt');
             const reelsContainer = document.getElementById('reelsContainer');
-            const reels = document.querySelectorAll('.reel');
+            let reels = document.querySelectorAll('.reel');
             let isStarted = false;
 
-            // Global audio player for mobile (iOS explicit unlock)
             const audioPlayer = document.getElementById('mainAudio');
             
             let currentReelIndex = 0;
             let currentAudioSrc = null;
             let reelStartTime = Date.now();
             let hasInteractedAtCurrentReel = false;
+            let observer = null;
             
-            // Autonext implementation
             audioPlayer.addEventListener('ended', () => {
                 const currentId = reels[currentReelIndex].getAttribute('data-id');
-                hasInteractedAtCurrentReel = true; // Finished audio, so not a skip
-                // Auto-like on completion
+                hasInteractedAtCurrentReel = true; 
                 if (!document.querySelector(`.like-button[data-id="${currentId}"]`).classList.contains('liked')) {
                     recordAction(currentId, 'like');
                 }
                 
-                // If there's a next reel, scroll to it smoothly
                 if (currentReelIndex < reels.length - 1) {
                     reels[currentReelIndex + 1].scrollIntoView({ behavior: 'smooth' });
                 }
@@ -237,11 +308,9 @@
             function playAudioForReel(index) {
                 if (index < 0 || index >= reels.length) return;
                 
-                // Track skip for previous reel
                 if (currentReelIndex !== index) {
                     const timeSpent = (Date.now() - reelStartTime) / 1000;
                     const prevReelId = reels[currentReelIndex].getAttribute('data-id');
-                    // If skipped before 3 seconds and no like was given, record as unlike/skip
                     if (timeSpent < 3 && !hasInteractedAtCurrentReel) {
                         recordAction(prevReelId, 'unlike');
                     }
@@ -264,14 +333,13 @@
                 }
             }
 
-            // Start interaction to allow autoplay
             playPrompt.addEventListener('click', () => {
                 if (isStarted) return;
                 isStarted = true;
                 playPrompt.style.display = 'none';
                 reelsContainer.style.display = 'block';
+                document.getElementById('topSearchBar').style.display = 'block';
                 
-                // Direct play event inline inside the user click handler 
                 if (reels.length > 0) {
                     currentReelIndex = 0;
                     reelStartTime = Date.now();
@@ -282,7 +350,6 @@
                     audioPlayer.play().catch(e => console.log('Autoplay blocked:', e));
                 }
                 
-                // Initialize observer only after user interaction
                 initObserver();
             });
 
@@ -290,10 +357,10 @@
                 const observerOptions = {
                     root: reelsContainer,
                     rootMargin: '0px',
-                    threshold: 0.6 // Reel must be 60% visible to trigger
+                    threshold: 0.6 
                 };
 
-                const observer = new IntersectionObserver((entries) => {
+                observer = new IntersectionObserver((entries) => {
                     entries.forEach(entry => {
                         if (entry.isIntersecting) {
                             const reel = entry.target;
@@ -303,54 +370,43 @@
                     });
                 }, observerOptions);
 
-                // Observe all reels
                 reels.forEach(reel => {
                     observer.observe(reel);
                 });
             }
             
-            // Interaction handlers
-            document.querySelectorAll('.like-button').forEach(btn => {
-                btn.addEventListener('click', (e) => {
+            function setupReelEvents(reel) {
+                const likeBtn = reel.querySelector('.like-button');
+                likeBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    const id = btn.getAttribute('data-id');
-                    btn.classList.toggle('liked');
-                    if (btn.classList.contains('liked')) {
+                    const id = likeBtn.getAttribute('data-id');
+                    likeBtn.classList.toggle('liked');
+                    if (likeBtn.classList.contains('liked')) {
                         recordAction(id, 'like');
                         hasInteractedAtCurrentReel = true;
                     }
                 });
-            });
 
-            // Allow clicking on a reel to pause/play and double click to like
-            let lastTap = 0;
-            let dragDistance = 0;
-            reels.forEach(reel => {
+                let lastTap = 0;
                 reel.addEventListener('click', (e) => {
-                    // Ignore clicks on buttons
                     if(e.target.closest('.action-button')) return;
-                    if(dragDistance > 10) return; // It was a drag, not a click
+                    if(dragDistance > 10) return;
                     
                     const now = Date.now();
                     const id = reel.getAttribute('data-id');
-                    const likeBtn = reel.querySelector('.like-button');
                     
                     if (now - lastTap < 300) {
-                        // Double tap - Like
                         if (!likeBtn.classList.contains('liked')) {
                             likeBtn.classList.add('liked');
                             recordAction(id, 'like');
                         }
                         hasInteractedAtCurrentReel = true;
                         
-                        // Heart animation
                         const heart = reel.querySelector('.heart-animation');
                         heart.classList.remove('animate-heart');
-                        void heart.offsetWidth; // trigger reflow
+                        void heart.offsetWidth; 
                         heart.classList.add('animate-heart');
                     } else {
-                        // Single tap - Pause/Play
-                        // Delay execution to check for double tap
                         setTimeout(() => {
                             if (Date.now() - lastTap >= 300) {
                                 if (Array.from(reels).indexOf(reel) === currentReelIndex) {
@@ -365,12 +421,15 @@
                     }
                     lastTap = now;
                 });
-            });
+            }
+
+            reels.forEach(setupReelEvents);
 
             // Add drag to scroll functionality
             let isDragging = false;
             let startY;
             let startScrollTop;
+            let dragDistance = 0;
 
             reelsContainer.addEventListener('mousedown', (e) => {
                 isDragging = true;
@@ -378,12 +437,12 @@
                 startY = e.pageY;
                 startScrollTop = reelsContainer.scrollTop;
                 reelsContainer.style.scrollSnapType = 'none';
-                reelsContainer.style.scrollBehavior = 'auto'; // instant scroll tracking
+                reelsContainer.style.scrollBehavior = 'auto'; 
             });
 
             window.addEventListener('mousemove', (e) => {
                 if (!isDragging) return;
-                e.preventDefault(); // prevent text selection
+                e.preventDefault(); 
                 const y = e.pageY;
                 const walk = y - startY;
                 dragDistance += Math.abs(e.movementY);
@@ -396,8 +455,6 @@
                 reelsContainer.style.scrollSnapType = 'y mandatory';
                 reelsContainer.style.scrollBehavior = 'smooth';
                 
-                // Force a re-evaluation of snap position by slightly nudging scroll
-                // Not always strictly necessary, but helpful for some browser engines
                 if (dragDistance > 10) {
                     const snapHeight = window.innerHeight;
                     const currentScroll = reelsContainer.scrollTop;
@@ -406,6 +463,103 @@
                         top: closestIndex * snapHeight,
                         behavior: 'smooth'
                     });
+                }
+            });
+
+            function insertAndScrollToReel(sentence) {
+                const newReel = document.createElement('div');
+                newReel.className = 'reel';
+                newReel.setAttribute('data-audio-src', '/audio/' + sentence.id);
+                newReel.setAttribute('data-id', sentence.id);
+                
+                const encodedText = encodeURIComponent(sentence.text);
+                
+                newReel.innerHTML = `
+                    <div class="heart-animation">❤️</div>
+                    <img src="https://picsum.photos/seed/${encodedText}/1080/1920" alt="Generated context" class="reel-bg" loading="lazy">
+                    <div class="reel-overlay"></div>
+                    
+                    <div class="reel-content">
+                        <div class="reel-id">@sentence_${sentence.id}</div>
+                        <div class="reel-text">${sentence.text}</div>
+                    </div>
+
+                    <div class="interactions">
+                        <div class="action-button like-button" title="Like" data-id="${sentence.id}">
+                           ❤️
+                        </div>
+                        <a class="action-button" href="/sentence/${sentence.id}" title="View Details">
+                           ℹ️ 
+                        </a>
+                    </div>
+                `;
+
+                const currentReel = reels[currentReelIndex];
+                currentReel.insertAdjacentElement('afterend', newReel);
+
+                reels = document.querySelectorAll('.reel');
+                
+                if (observer) {
+                    observer.observe(newReel);
+                }
+                setupReelEvents(newReel);
+
+                newReel.scrollIntoView({ behavior: 'smooth' });
+            }
+
+            // Search functionality
+            const searchInput = document.getElementById('reelsSearch');
+            const suggestionsBox = document.getElementById('searchSuggestions');
+            let searchDebounceTimer;
+
+            searchInput.addEventListener('input', (e) => {
+                clearTimeout(searchDebounceTimer);
+                const query = e.target.value.trim();
+                
+                if (query.length < 2) {
+                    suggestionsBox.style.display = 'none';
+                    return;
+                }
+
+                searchDebounceTimer = setTimeout(async () => {
+                    try {
+                        const response = await fetch('/api/suggest?q=' + encodeURIComponent(query));
+                        const data = await response.json();
+                        
+                        if (data.suggestions && data.suggestions.length > 0) {
+                            suggestionsBox.innerHTML = data.suggestions.map(s => 
+                                `<div class="suggestion-item" data-id="${s.id}" data-text="${s.text.replace(/"/g, '&quot;')}">${s.text}</div>`
+                            ).join('');
+                            suggestionsBox.style.display = 'block';
+
+                            suggestionsBox.querySelectorAll('.suggestion-item').forEach(item => {
+                                item.addEventListener('click', () => {
+                                    insertAndScrollToReel({
+                                        id: item.getAttribute('data-id'),
+                                        text: item.getAttribute('data-text')
+                                    });
+                                    suggestionsBox.style.display = 'none';
+                                    searchInput.value = '';
+                                });
+                            });
+                        } else {
+                            suggestionsBox.style.display = 'none';
+                        }
+                    } catch (error) {
+                        console.error('Failed to fetch suggestions:', error);
+                    }
+                }, 300);
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!searchInput.contains(e.target) && !suggestionsBox.contains(e.target)) {
+                    suggestionsBox.style.display = 'none';
+                }
+            });
+            
+            searchInput.addEventListener('focus', () => {
+                if (searchInput.value.trim().length >= 2 && suggestionsBox.innerHTML.trim() !== '') {
+                    suggestionsBox.style.display = 'block';
                 }
             });
         });
