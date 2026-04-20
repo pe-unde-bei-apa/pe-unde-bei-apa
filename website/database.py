@@ -11,6 +11,7 @@ def db_connect(db, dict=False):
         user="root",
         password="pula",
         database=db,
+        charset="utf8mb4",
         cursorclass=pymysql.cursors.DictCursor if dict else pymysql.cursors.Cursor,
         autocommit=True,
     )
