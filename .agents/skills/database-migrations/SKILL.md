@@ -18,6 +18,7 @@ I always follow these steps:
   - list `website/migrations/*.sql` and find the latest one (the one with our message)
   - edit it by adding SQL code inside it
   - leave the initial sql comments at the top of the file unchanged, yoyo-migrations will need them later 
+  - COLLATE='utf8mb4_romanian_ci'
 4. Apply migrations to database: `bash migration_apply.sh`
 5. Add it to the SQL 
 

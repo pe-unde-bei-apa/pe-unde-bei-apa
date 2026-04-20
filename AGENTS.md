@@ -4,7 +4,7 @@
 - The project uses `ruff` for linting. Always run the linter with `uv run ruff check` and fix errors before continuing.
 - The project uses `ruff` for formatting. Always run the formatter with `uv run ruff format` after editing any python file.
 - The project uses `pytest` for testing. Always run tests with `PYTHONPATH=. uv run pytest` after editing any python code.
-- The database is `mariadb` version 12 - do not use MySQL dialects where MariaDB functions differ.
+- The database is `mariadb` version 12 - do not use MySQL dialects where MariaDB functions differ. All tables MUST USE COLLATE = 'utf8mb4_romanian_ci' ALWAYS !
 
 
 ## Approach
