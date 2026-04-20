@@ -45,3 +45,11 @@ services:
       - ./db_data/manticore:/var/lib/manticore:Z
       - ./manticore.conf:/etc/manticoresearch/manticore.conf:Z
     command: ["searchd", "-c", "/etc/manticoresearch/manticore.conf", "--nodetach"]
+
+  dexonline:
+    container_name: dexonline
+    build: dexonline_docker
+    ports:
+      - "8666:80"
+    volumes:
+      - ./dexonline/:/var/www/html

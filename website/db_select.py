@@ -45,7 +45,7 @@ def select_audio_bytes(id):
 def get_dexonline_definitions(word):
     with db_connect(DEXONLINE_DB, dict=True) as cur:
         cur.execute(
-            "SELECT * FROM Definition WHERE lexicon = %s LIMIT 10",
+            "SELECT * FROM Definition WHERE lexicon = %s AND status = 0 LIMIT 10",
             (word.lower()),
         )
         lll = cur.fetchall()

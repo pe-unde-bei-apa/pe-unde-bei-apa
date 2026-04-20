@@ -1,0 +1,3 @@
+[submodule "docker/dexonline"]
+	path = docker/dexonline
+	url = https://github.com/dexonline/dexonline
