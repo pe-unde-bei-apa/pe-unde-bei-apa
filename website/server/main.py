@@ -168,7 +168,7 @@ def api_upload_sentence():
         return {"error": "Missing text or audio"}, 400
 
     # 1. Add sentence and get ID
-    new_id = add_sentence(text)
+    new_id = add_sentence(text, origin="upload")
     if not new_id:
         return {"error": "Failed to create or find sentence ID"}, 500
 

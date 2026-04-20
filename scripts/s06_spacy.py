@@ -14,4 +14,4 @@ def load_texts():
 
 
 for text in load_texts():
-    add_sentence(text)
+    add_sentence(text, origin="original_corpus")

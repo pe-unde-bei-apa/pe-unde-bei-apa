@@ -7,16 +7,27 @@ from website.database import APP_DB, db_connect
 nlp = spacy.load("ro_core_news_sm")
 
 
-def add_sentence(text):
+def add_sentence(text, origin):
     with db_connect(APP_DB) as cur:
         try:
             cur.execute("INSERT INTO sentence(text) VALUES (%s)", (text,))
             id = cur.lastrowid
+            new_sentence = True
         except IntegrityError:
             print("skip duplicate: ", text)
             cur.execute("SELECT id FROM sentence WHERE text = %s", (text,))
             row = cur.fetchone()
-            return row[0] if row else None
+            id = row[0] if row else None
+            new_sentence = False
+
+        if id is not None:
+            cur.execute(
+                "REPLACE INTO sentence_origin (sentence_id, origin) VALUES (%s, %s)",
+                (id, origin),
+            )
+
+        if not new_sentence or id is None:
+            return id
 
         doc = nlp(text)
         vector_list = [float(f) for f in doc.vector.tolist()]
