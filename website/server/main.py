@@ -8,6 +8,8 @@ from website.db_select import (
     get_word_data,
     record_like,
     select_all_sentences_scored,
+    select_dex_scrape,
+    select_dex_entry,
 )
 from website.index_manticore import fuzzy_search
 from website.services.llm_chat import chat_with_llm
@@ -181,6 +183,20 @@ def api_upload_sentence():
         )
 
     return {"id": new_id, "text": text}
+
+
+@app.route("/dex/")
+def dex_list():
+    entries = select_dex_scrape(100)
+    return render_template("dex_list.html", entries=entries)
+
+
+@app.route("/dex/<int:dex_entry_id>")
+def dex_entry(dex_entry_id):
+    html = select_dex_entry(dex_entry_id)
+    if html:
+        return html
+    return "Entry not found or not yet scraped", 404
 
 
 if __name__ == "__main__":

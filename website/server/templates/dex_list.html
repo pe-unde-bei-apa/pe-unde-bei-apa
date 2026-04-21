@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DEX Scrape Order - Pe Unde Bei Apa</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #f43f5e;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(to right, #6366f1, #f43f5e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        p.subtitle {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .entry-list {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .entry-card {
+            background: var(--card-bg);
+            padding: 1.25rem;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-decoration: none;
+            color: inherit;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .entry-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            border-color: var(--primary);
+        }
+
+        .entry-info h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .entry-info .meta {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        .entry-freq {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>DEXonline Scrape Order</h1>
+            <p class="subtitle">Top 100 entries prioritized by frequency</p>
+        </header>
+
+        <main class="entry-list">
+            {% for entry in entries %}
+            <a href="{{ url_for('dex_entry', dex_entry_id=entry.dex_entry_id) }}" class="entry-card">
+                <div class="entry-info">
+                    <h2>{{ entry.dex_entry_desc }}</h2>
+                    <div class="meta">Entry ID: {{ entry.dex_entry_id }}</div>
+                </div>
+                <div class="entry-freq">
+                    {{ "%.4f"|format(entry.word_freq) }}
+                </div>
+            </a>
+            {% else %}
+            <div class="empty-state">
+                <p>Nicio intrare găsită în baza de date.</p>
+            </div>
+            {% endfor %}
+        </main>
+    </div>
+</body>
+</html>

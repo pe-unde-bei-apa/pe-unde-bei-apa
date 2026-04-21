@@ -19,6 +19,8 @@ dependencies = [
     "spacy>=3.8.14",
     "yoyo-migrations>=9.0.0",
     "matplotlib>=3.10.8",
+    "brotli>=1.2.0",
+    "zstandard>=0.25.0",
 ]
 
 [dependency-groups]

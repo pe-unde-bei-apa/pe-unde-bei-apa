@@ -128,3 +128,27 @@ def select_all_sentences_scored():
     sentences.sort(key=lambda x: x["score"] + (random.random() * 3 - 1), reverse=True)
 
     return sentences
+
+
+def select_dex_scrape(limit=100):
+    with db_connect(APP_DB, dict=True) as cur:
+        cur.execute(
+            "SELECT scrape_id, dex_entry_id, dex_entry_desc, word_freq FROM dex_scrape WHERE error IS NULL ORDER BY word_freq DESC LIMIT %s",
+            (limit,),
+        )
+        return cur.fetchall()
+
+
+def select_dex_entry(dex_entry_id):
+    with db_connect(APP_DB, dict=True) as cur:
+        cur.execute(
+            """
+            SELECT dsd.dex_scraped_html 
+            FROM dex_scrape ds
+            INNER JOIN dex_scrape_data dsd ON ds.scrape_id = dsd.scrape_id
+            WHERE ds.dex_entry_id = %s
+            """,
+            (dex_entry_id,),
+        )
+        row = cur.fetchone()
+        return row["dex_scraped_html"] if row else None
