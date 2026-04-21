@@ -21,6 +21,7 @@ SOURCE_BLACKLIST = [
     "gta",
     # astea sunt cu plante
     "dendrofloricol",
+    "etnobotanic",
     # astea sunt cu muzica si teorie muzicala
     "dtm",
     # astea sunt cu chestii industriale
@@ -31,7 +32,6 @@ SOURCE_BLACKLIST = [
     "dmg",
     "ger",
     "gaer",
-    "etnobotanic",
     "dtlall",
     "terminologie-literara",
     "rebus",
