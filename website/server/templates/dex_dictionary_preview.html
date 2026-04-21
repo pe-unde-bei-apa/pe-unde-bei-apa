@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sursă: {{ source_name }} - Pe Unde Bei Apa</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #f43f5e;
+            --border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1.5rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(to right, #f43f5e, #6366f1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        p.subtitle {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .back-link:hover {
+            color: var(--primary-hover);
+            text-decoration: underline;
+        }
+
+        .definition-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .def-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .def-word {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .def-word:hover {
+            text-decoration: underline;
+        }
+
+        .def-meta {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .def-content {
+            font-size: 1.05rem;
+        }
+        
+        .def-content p {
+            margin-bottom: 0.5rem;
+        }
+
+        .def-content b, .def-content strong {
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .def-content i, .def-content em {
+            color: #cbd5e1;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="javascript:history.back()" class="back-link">&larr; Înapoi</a>
+        
+        <header>
+            <h1>Sursă Dicționar: {{ source_name }}</h1>
+            <p class="subtitle">Primele 100 de definiții din această sursă</p>
+        </header>
+
+        <main>
+            {% if definitions %}
+                {% for def in definitions %}
+                <div class="definition-card">
+                    <div class="def-header">
+                        <a href="{{ url_for('dex_entry', dex_entry_id=def.dex_entry_id) }}" class="def-word">
+                            {{ def.dex_entry_desc }}
+                        </a>
+                        <div class="def-meta">
+                            {% if def.definition_section %}
+                            <span style="background: rgba(255,255,255,0.05); padding: 0.2rem 0.5rem; border-radius: 4px; margin-right: 0.5rem;">{{ def.definition_section|capitalize }}</span>
+                            {% endif %}
+                            ID: {{ def.dex_entry_id }}
+                        </div>
+                    </div>
+                    <div class="def-content">
+                        {{ def.html|safe }}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div style="text-align: center; color: var(--text-muted); padding: 4rem;">
+                    Nu există definiții pentru această sursă.
+                </div>
+            {% endif %}
+        </main>
+    </div>
+</body>
+</html>

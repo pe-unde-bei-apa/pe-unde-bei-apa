@@ -8,9 +8,11 @@ from website.db_select import (
     get_word_data,
     record_like,
     select_all_sentences_scored,
-    select_dex_scrape,
-    select_dex_entry,
+    select_dex_definitions_list,
+    select_dex_entry_definitions,
+    select_dictionary_definitions,
 )
+import markdown
 from website.index_manticore import fuzzy_search
 from website.services.llm_chat import chat_with_llm
 from website.services.generator import generate_creative_sentence
@@ -187,16 +189,68 @@ def api_upload_sentence():
 
 @app.route("/dex/")
 def dex_list():
-    entries = select_dex_scrape(100)
-    return render_template("dex_list.html", entries=entries)
+    page = request.args.get("page", 1, type=int)
+    limit = 1000
+    rows = select_dex_definitions_list(page=page, limit=limit)
+
+    grouped_entries = {}
+    for row in rows:
+        eid = row["dex_entry_id"]
+        if eid not in grouped_entries:
+            grouped_entries[eid] = {
+                "dex_entry_id": eid,
+                "dex_entry_desc": row["dex_entry_desc"],
+                "word_freq": row["word_freq"],
+                "definition_count": 0,
+                "sources": set(),
+            }
+        grouped_entries[eid]["definition_count"] += 1
+        if row["source"]:
+            grouped_entries[eid]["sources"].add(row["source"])
+
+    entries = []
+    for data in grouped_entries.values():
+        data["dictionaries"] = ", ".join(sorted(list(data["sources"])))
+        entries.append(data)
+
+    has_next = len(rows) == limit
+    return render_template(
+        "dex_list.html", entries=entries, page=page, has_next=has_next
+    )
 
 
 @app.route("/dex/<int:dex_entry_id>")
 def dex_entry(dex_entry_id):
-    html = select_dex_entry(dex_entry_id)
-    if html:
-        return html
-    return "Entry not found or not yet scraped", 404
+    definitions = select_dex_entry_definitions(dex_entry_id)
+    if not definitions:
+        return "Entry not found or not yet parsed", 404
+
+    for d in definitions:
+        if d.get("txt"):
+            d["html"] = markdown.markdown(d["txt"])
+
+    entry_desc = definitions[0]["dex_entry_desc"]
+    return render_template(
+        "dex_entry.html",
+        definitions=definitions,
+        entry_desc=entry_desc,
+        dex_entry_id=dex_entry_id,
+    )
+
+
+@app.route("/dexdictionary/<source_name>")
+def dex_dictionary(source_name):
+    definitions = select_dictionary_definitions(source_name, limit=100)
+    if not definitions:
+        return "Dictionary not found or empty", 404
+
+    for d in definitions:
+        if d.get("txt"):
+            d["html"] = markdown.markdown(d["txt"])
+
+    return render_template(
+        "dex_dictionary_preview.html", definitions=definitions, source_name=source_name
+    )
 
 
 if __name__ == "__main__":

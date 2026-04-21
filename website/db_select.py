@@ -130,25 +130,54 @@ def select_all_sentences_scored():
     return sentences
 
 
-def select_dex_scrape(limit=100):
+def select_dex_definitions_list(page=1, limit=1000):
+    offset = (page - 1) * limit
     with db_connect(APP_DB, dict=True) as cur:
         cur.execute(
-            "SELECT scrape_id, dex_entry_id, dex_entry_desc, word_freq FROM dex_scrape WHERE error IS NULL ORDER BY word_freq DESC LIMIT %s",
-            (limit,),
+            """
+            SELECT 
+                id,
+                dex_entry_id, 
+                dex_entry_desc, 
+                word_freq, 
+                source
+            FROM dex_definitions_markdown 
+            ORDER BY id ASC 
+            LIMIT %s OFFSET %s
+            """,
+            (limit, offset),
         )
         return cur.fetchall()
 
 
-def select_dex_entry(dex_entry_id):
+def select_dex_entry_definitions(dex_entry_id):
     with db_connect(APP_DB, dict=True) as cur:
         cur.execute(
             """
-            SELECT dsd.dex_scraped_html 
-            FROM dex_scrape ds
-            INNER JOIN dex_scrape_data dsd ON ds.scrape_id = dsd.scrape_id
-            WHERE ds.dex_entry_id = %s
+            SELECT 
+                id, scrape_id, dex_entry_id, dex_entry_desc, word_freq, word_obscene, 
+                definition_section, source, source_index, txt
+            FROM dex_definitions_markdown
+            WHERE dex_entry_id = %s
+            ORDER BY id ASC
             """,
             (dex_entry_id,),
         )
-        row = cur.fetchone()
-        return row["dex_scraped_html"] if row else None
+        return cur.fetchall()
+
+
+def select_dictionary_definitions(source, limit=100):
+    with db_connect(APP_DB, dict=True) as cur:
+        cur.execute(
+            """
+            SELECT 
+                id, scrape_id, dex_entry_id, dex_entry_desc, word_freq, word_obscene, 
+                definition_section, source, source_index, txt
+            FROM dex_definitions_markdown
+            WHERE source = %s
+            ORDER BY id ASC
+            LIMIT %s
+            """,
+            (source, limit),
+        )
+        return cur.fetchall()

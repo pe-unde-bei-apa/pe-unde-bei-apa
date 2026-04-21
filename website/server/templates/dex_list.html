@@ -14,6 +14,7 @@
             --text: #f8fafc;
             --text-muted: #94a3b8;
             --accent: #f43f5e;
+            --border-color: rgba(255, 255, 255, 0.1);
         }
 
         * {
@@ -31,7 +32,7 @@
         }
 
         .container {
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 0 auto;
         }
 
@@ -53,48 +54,102 @@
             font-size: 1.1rem;
         }
 
-        .entry-list {
-            display: grid;
-            gap: 1rem;
-        }
-
-        .entry-card {
+        table {
+            width: 100%;
+            border-collapse: collapse;
             background: var(--card-bg);
-            padding: 1.25rem;
             border-radius: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: transform 0.2s, box-shadow 0.2s;
-            text-decoration: none;
-            color: inherit;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-
-        .entry-card:hover {
-            transform: translateY(-2px);
+            overflow: hidden;
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
-            border-color: var(--primary);
         }
 
-        .entry-info h2 {
-            font-size: 1.25rem;
-            font-weight: 600;
-            margin-bottom: 0.25rem;
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
         }
 
-        .entry-info .meta {
-            font-size: 0.875rem;
+        th {
+            background-color: rgba(0, 0, 0, 0.2);
             color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.05em;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background-color: rgba(255, 255, 255, 0.02);
+        }
+
+        a {
+            color: var(--primary);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        a:hover {
+            color: var(--primary-hover);
+            text-decoration: underline;
         }
 
         .entry-freq {
             background: rgba(99, 102, 241, 0.1);
             color: var(--primary);
-            padding: 0.5rem 1rem;
+            padding: 0.2rem 0.6rem;
             border-radius: 20px;
             font-weight: 600;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+            display: inline-block;
+        }
+
+        .dict-badge {
+            background: rgba(244, 63, 94, 0.1);
+            color: var(--accent);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            margin-right: 0.3rem;
+            margin-bottom: 0.3rem;
+            display: inline-block;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 2rem;
+            gap: 1rem;
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background: var(--primary-hover);
+            text-decoration: none;
+        }
+
+        .btn.disabled {
+            background: var(--card-bg);
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+        
+        .page-info {
+            color: var(--text-muted);
+            font-size: 0.95rem;
         }
 
         .empty-state {
@@ -107,26 +162,56 @@
 <body>
     <div class="container">
         <header>
-            <h1>DEXonline Scrape Order</h1>
-            <p class="subtitle">Top 100 entries prioritized by frequency</p>
+            <h1>DEXonline Definitions</h1>
+            <p class="subtitle">Prioritized entries by frequency</p>
         </header>
 
-        <main class="entry-list">
-            {% for entry in entries %}
-            <a href="{{ url_for('dex_entry', dex_entry_id=entry.dex_entry_id) }}" class="entry-card">
-                <div class="entry-info">
-                    <h2>{{ entry.dex_entry_desc }}</h2>
-                    <div class="meta">Entry ID: {{ entry.dex_entry_id }}</div>
-                </div>
-                <div class="entry-freq">
-                    {{ "%.4f"|format(entry.word_freq) }}
-                </div>
-            </a>
+        <main>
+            {% if entries %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Word</th>
+                        <th>Frequency</th>
+                        <th>Defs</th>
+                        <th>Dictionaries</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in entries %}
+                    <tr>
+                        <td style="color: var(--text-muted); font-size: 0.9rem;">#{{ entry.dex_entry_id }}</td>
+                        <td>
+                            <a href="{{ url_for('dex_entry', dex_entry_id=entry.dex_entry_id) }}" style="font-weight: 600; font-size: 1.1rem;">
+                                {{ entry.dex_entry_desc }}
+                            </a>
+                        </td>
+                        <td><span class="entry-freq">{{ "%.4f"|format(entry.word_freq) }}</span></td>
+                        <td>{{ entry.definition_count }}</td>
+                        <td>
+                            {% if entry.dictionaries %}
+                                {% for dict in entry.dictionaries.split(', ') %}
+                                    <a href="{{ url_for('dex_dictionary', source_name=dict) }}" class="dict-badge">{{ dict }}</a>
+                                {% endfor %}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div class="pagination">
+                <a href="{{ url_for('dex_list', page=page-1) }}" class="btn {% if page <= 1 %}disabled{% endif %}">&larr; Previous</a>
+                <span class="page-info">Page {{ page }}</span>
+                <a href="{{ url_for('dex_list', page=page+1) }}" class="btn {% if not has_next %}disabled{% endif %}">Next &rarr;</a>
+            </div>
+
             {% else %}
             <div class="empty-state">
                 <p>Nicio intrare găsită în baza de date.</p>
             </div>
-            {% endfor %}
+            {% endif %}
         </main>
     </div>
 </body>
