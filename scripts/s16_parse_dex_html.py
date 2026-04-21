@@ -1,4 +1,5 @@
 import argparse
+import json
 import re
 import unicodedata
 import multiprocessing
@@ -237,19 +238,42 @@ def insert_definitions(data):
 
 
 def main():
+
+    batch_size = 1000
+    pool = multiprocessing.Pool(processes=10)
+
     parser = argparse.ArgumentParser()
     parser.add_argument("--limit", type=int, default=None, help="Max rows to parse")
+    parser.add_argument(
+        "--debug",
+        action="store_true",
+        help="Debug mode: parse 1 entry, print JSON and exit",
+    )
     args = parser.parse_args()
+    if args.debug:
+        parsed_data = parse_many_html([3], pool)
+        print(json.dumps(parsed_data, indent=4, ensure_ascii=False))
+
+        import markdown
+
+        print("\n=== RENDERED HTML ===")
+        for d in parsed_data:
+            if "txt" in d:
+                print(f"\n--- {d.get('source', 'unknown')} ---")
+                print(markdown.markdown(d["txt"]))
+
+        pool.close()
+        pool.join()
+        sys.exit(0)
 
     to_process = get_scrape_ids_to_process(args.limit)
     print(f"Found {len(to_process)} entries to process.")
 
-    batch_size = 1000
-    pool = multiprocessing.Pool(processes=10)
     for i in range(0, len(to_process), batch_size):
         batch_ids = to_process[i : i + batch_size]
         print(f"Processing batch {i // batch_size + 1}...")
         parsed_data = parse_many_html(batch_ids, pool)
+
         if parsed_data:
             insert_definitions(parsed_data)
         print(f"Inserted {len(parsed_data)} definitions for this batch.")
