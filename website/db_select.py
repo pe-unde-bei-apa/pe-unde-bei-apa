@@ -1,4 +1,5 @@
 from website.database import db_connect, APP_DB, DEXONLINE_DB
+from website.dictionary_source_blacklist import SOURCE_BLACKLIST, sql_literal_list
 
 
 def select_all_sentences():
@@ -132,9 +133,10 @@ def select_all_sentences_scored():
 
 def select_dex_definitions_list(page=1, limit=1000):
     offset = (page - 1) * limit
+    blacklist = sql_literal_list(SOURCE_BLACKLIST)
     with db_connect(APP_DB, dict=True) as cur:
         cur.execute(
-            """
+            f"""
             SELECT 
                 id,
                 dex_entry_id, 
@@ -142,6 +144,7 @@ def select_dex_definitions_list(page=1, limit=1000):
                 word_freq, 
                 source
             FROM dex_definitions_markdown 
+            WHERE source NOT IN {blacklist}
             ORDER BY id ASC 
             LIMIT %s OFFSET %s
             """,
@@ -151,14 +154,16 @@ def select_dex_definitions_list(page=1, limit=1000):
 
 
 def select_dex_entry_definitions(dex_entry_id):
+    blacklist = sql_literal_list(SOURCE_BLACKLIST)
     with db_connect(APP_DB, dict=True) as cur:
         cur.execute(
-            """
+            f"""
             SELECT 
                 id, scrape_id, dex_entry_id, dex_entry_desc, word_freq, word_obscene, 
                 definition_section, source, source_index, txt
             FROM dex_definitions_markdown
             WHERE dex_entry_id = %s
+            AND source NOT IN {blacklist}
             ORDER BY id ASC
             """,
             (dex_entry_id,),

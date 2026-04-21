@@ -90,19 +90,21 @@ def html_to_markdown(node, in_bold=False, in_italic=False):
     )
 
     if node.name == "abbr":
-        expansion = node.get("data-bs-content", "")
-        # Always wrap expansion in spaces as requested before
-        content = f" {expansion} "
+        expansion = node.get("data-bs-content", "").strip()
         if in_italic:
-            return content
+            return f" {expansion} "
         else:
-            return f"_{content}_"
+            return f" _{expansion}_ "
 
     res = content
     if node.name in ["b", "strong"] and not in_bold:
-        res = f"**{res}**"
+        res = f"**{res.strip()}**"
     if node.name in ["i", "em"] and not in_italic:
-        res = f"_{res}_"
+        inner = res.strip()
+        # Preserve surrounding whitespace so we don't collapse text flow
+        leading = " " if res and res[0] == " " else ""
+        trailing = " " if res and res[-1] == " " else ""
+        res = f"{leading}_{inner}_{trailing}"
 
     return res
 
@@ -126,7 +128,7 @@ def extract_definitions(main_el, tab_id):
         txt = re.sub(r"\s+", " ", txt).strip()
 
         # Add newlines before numbered entries (e.g., **1**, **1.**, **9-10**)
-        txt = re.sub(r"\s+(\*\*\d+(?:-\d+)?\.?\*\*)", r"\n\1", txt)
+        txt = re.sub(r"\s+(\*\*\d+(?:-\d+)?\.?\*\*)", r"  \n\1", txt)
 
         source = None
         ref_link = wrapper.find("a", class_="ref")
@@ -251,16 +253,15 @@ def main():
     )
     args = parser.parse_args()
     if args.debug:
-        parsed_data = parse_many_html([3], pool)
-        print(json.dumps(parsed_data, indent=4, ensure_ascii=False))
-
+        parsed_data = parse_many_html([1], pool)
         import markdown
 
-        print("\n=== RENDERED HTML ===")
         for d in parsed_data:
+            print(json.dumps(d, indent=4, ensure_ascii=False))
             if "txt" in d:
-                print(f"\n--- {d.get('source', 'unknown')} ---")
+                print(f"--- RENDERED HTML ({d.get('source', 'unknown')}) ---")
                 print(markdown.markdown(d["txt"]))
+                print("==================================\n")
 
         pool.close()
         pool.join()
